@@ -1,0 +1,87 @@
+type room;
+type obj;
+type robot;
+
+fluent boolean at_robot(robot r, room l);
+fluent boolean at_obj(obj b, room r);
+fluent boolean free(robot r);
+fluent boolean carry(obj o, robot r);
+fluent boolean allowed(robot r, room l);
+
+fluent integer battery(robot r);
+
+constant integer move_time(robot r);
+
+action move(robot r, room a, room b)
+{
+    duration := move_time(r);
+
+    [all] allowed(r, b) == true;
+    [start] at_robot(r, a) == true;
+    [start] battery(r) > 20;
+
+    [start] at_robot(r, a) := false;
+    [end] at_robot(r, b) := true;
+    [end] battery(r) := battery(r) - 20;
+};
+
+action pick(obj o, room l, robot r)
+{
+    at_obj(o, l) == true;
+    at_robot(r, l) == true;
+    free(r) == true;
+
+    carry(o, r) := true;
+    at_obj(o, l) := false;
+    free(r) := false;
+};
+
+action drop(obj o, room l, robot r)
+{
+    carry(o, r) == true;
+    at_robot(r, l) == true;
+
+    at_obj(o, l) := true;
+    free(r) := true;
+    carry(o, r) := false;
+};
+
+
+instance room roomA, roomB, roomC;
+instance obj ball1, ball2;
+instance robot eve, wally;
+
+[start] at_robot(wally, roomA) := true;
+[start] at_robot(eve, roomB) := true;
+[start] at_robot(wally, roomB) := false;
+[start] at_robot(eve, roomA) := false;
+[start] at_robot(wally, roomC) := false;
+[start] at_robot(eve, roomC) := false;
+[start] free(wally) := true;
+[start] free(eve) := true;
+[start] at_obj(ball1, roomA) := true;
+[start] at_obj(ball2, roomA) := true;
+[start] at_obj(ball1, roomB) := false;
+[start] at_obj(ball2, roomB) := false;
+
+[start] at_obj(ball1, roomC) := false;
+[start] at_obj(ball2, roomC) := false;
+
+[start] allowed(eve, roomA) := false;
+[start] allowed(eve, roomB) := true;
+[start] allowed(eve, roomC) := true;
+[start] allowed(wally, roomA) := true;
+[start] allowed(wally, roomB) := true;
+[start] allowed(wally, roomC) := false;
+
+[start] forall(obj o, robot r) { carry(o, r) := false; };
+
+move_time(wally) := 20;
+move_time(eve) := 10;
+
+[start] battery(wally) := 100;
+[start] battery(eve) := 100;
+
+// goal
+[end] at_obj(ball1, roomC) == true;
+[end] at_obj(ball2, roomC) == true;

@@ -1,0 +1,135 @@
+fluent boolean engineRunning;
+fluent boolean engineStop;
+
+fluent float d;
+fluent float v;
+fluent float a;
+
+constant integer maxAcc;
+constant integer minAcc;
+constant float maxSpeed;
+constant float dragCoeff;
+
+
+action displacement()
+{
+
+    duration := 1;
+
+    [start] v >= (maxSpeed * (-1));
+    [start] v <= maxSpeed;
+
+    [start] engineRunning == true;
+    [start] v > 0;
+
+    [end] d := d + (v * 1);
+
+};
+
+action movingDrag()
+{
+
+    duration := 1;
+
+    [start] v >= (maxSpeed * (-1));
+    [start] v <= maxSpeed;
+
+    [start] engineRunning == true;
+
+    [end] v := v + (a * 1);
+
+};
+
+action dragAhead()
+{
+
+    duration := 1;
+
+    [start] v >= (maxSpeed * (-1));
+    [start] v <= maxSpeed;
+
+    [start] v > 0;
+    [start] engineRunning == true;
+
+    [end] v := v - (((v*v) * dragCoeff) * 1);
+
+};
+
+action accelerate()
+{
+    duration := 0.1;
+
+    [start] v >= (maxSpeed * (-1));
+    [start] v <= maxSpeed;
+
+    [start] a < maxAcc and engineRunning == true;
+
+    [end] a := a + 1.0;
+
+};
+
+action stopCar()
+{
+
+    duration := 0.1;
+
+    [start] v >= (maxSpeed * (-1));
+    [start] v <= maxSpeed;
+
+    [start] v > -0.1;
+    [start] v < 0.1;
+    [start] a == 0.0;
+    [start] engineRunning == true;
+
+    [end] v := 0.0;
+    [end] engineStop := true;
+    [end] engineRunning := false;
+
+};
+
+action startCar()
+{
+    duration := 0.1;
+
+    [start] v >= (maxSpeed * (-1));
+    [start] v <= maxSpeed;
+
+    [start] engineStop == true;
+
+    [end] engineRunning := true;
+    [end] engineStop := false;
+
+};
+
+action decelerate()
+{
+
+    duration := 0.1;
+
+    [start] v >= (maxSpeed * (-1));
+    [start] v <= maxSpeed;
+
+    [start] a > minAcc;
+    [start] engineRunning == true;
+
+    [end] a := a - 1.0;
+
+};
+
+
+[start] d := 0.0;
+[start] v := 0.0;
+[start] a := 0.0;
+
+[start] engineStop := true;
+[start] engineRunning := false;
+
+maxAcc := 2;
+minAcc := -1;
+dragCoeff := 0.1;
+maxSpeed := 10.0;
+
+
+[end] d >= 15;
+[end] d <= 20;
+[end] engineStop == true;
